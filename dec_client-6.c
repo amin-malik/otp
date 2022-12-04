@@ -20,6 +20,7 @@ void error(const char *msg) {
 	exit(0);
 }
 
+// Validate that any input is either A-Z or a space
 bool ValidateInput(char *input) {
 	while (*input) {
 		if (*input == '\n' || *input == ' ') {
@@ -34,6 +35,7 @@ bool ValidateInput(char *input) {
 	return true;
 }
 
+// Read an incoming message in chunks
 char* readMessage(int fd, int l) {
 	char *message = (char*) malloc(l + 1);
 	message[l] = '\0';
@@ -53,6 +55,7 @@ char* readMessage(int fd, int l) {
 	return message;
 }
 
+// Write a message to send it in chunks
 void writeMessage(int fd, char *message, int l) {
 	int blockSize = 512;
 	int written = 0;
@@ -92,7 +95,7 @@ void setupAddressStruct(struct sockaddr_in *address, int portNumber,
 	memcpy((char*) &address->sin_addr.s_addr, hostInfo->h_addr_list[0],
 			hostInfo->h_length);
 }
-
+// Read a file in chunks
 char * readFile(char *filename) {
 	FILE *fp = fopen(filename, "rb");
 	if (! fp) {
@@ -163,15 +166,14 @@ int main(int argc, char *argv[]) {
 	if (charsWritten <= 0) {
 		error("CLIENT: ERROR unable to verify client identity");
 	}
-
-	// Get return message from server
 	// Clear out the buffer again for reuse
 	memset(data_pointer, '\0', data_len);
-	// Read data from the socket, leaving \0 at end
+	// Read the encrypted data sent back from the socket
 	charsRead = recv(socketFD, data_pointer, data_len, 0);
 	if (charsRead < 0) {
 		error("CLIENT: ERROR reading response from socket");
 	}
+	// Print the encrypted data 
 	printf("%s\n", data_pointer);
 
 	// Close the socket
