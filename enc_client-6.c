@@ -7,13 +7,6 @@
 #include <sys/socket.h> // send(),recv()
 #include <netdb.h>      // gethostbyname()
 
-/**
- * Client code
- * 1. Create a socket and connect to the server specified in the command arugments.
- * 2. Prompt the user for input and send that input as a message to the server.
- * 3. Print the message received from the server and exit the program.
- */
-
 // Error function used for reporting issues
 void error(const char *msg) {
 	perror(msg);
@@ -34,6 +27,7 @@ bool ValidateInput(char *input) {
 	return true;
 }
 
+// Read a message in chunks until it's fully received
 char* readMessage(int fd, int l) {
 	char *message = (char*) malloc(l + 1);
 	message[l] = '\0';
@@ -52,7 +46,7 @@ char* readMessage(int fd, int l) {
 
 	return message;
 }
-
+// Write a message in chunks until it's fully sent
 void writeMessage(int fd, char *message, int l) {
 	int blockSize = 512;
 	int written = 0;
@@ -93,6 +87,7 @@ void setupAddressStruct(struct sockaddr_in *address, int portNumber,
 			hostInfo->h_length);
 }
 
+// Read the file into a character buffer
 char * readFile(char *filename) {
 	FILE *fp = fopen(filename, "rb");
 	if (! fp) {
@@ -148,8 +143,7 @@ int main(int argc, char *argv[]) {
 		error("CLIENT: ERROR connecting");
 	}
 
-	// Send message to server
-	// Write to the server
+	// Write to the server to identify itself as encryption client
 	char signature = 'E';
 	send(socketFD, &signature, 1, 0);
 	send(socketFD, &data_len, sizeof(int), 0);
@@ -164,7 +158,6 @@ int main(int argc, char *argv[]) {
 		error("CLIENT: ERROR unable to verify client identity");
 	}
 
-	// Get return message from server
 	// Clear out the buffer again for reuse
 	memset(data_pointer, '\0', data_len);
 	// Read data from the socket, leaving \0 at end
@@ -172,6 +165,7 @@ int main(int argc, char *argv[]) {
 	if (charsRead < 0) {
 		error("CLIENT: ERROR reading response from socket");
 	}
+	// Print out the returned encrypted text
 	printf("%s\n", data_pointer);
 
 	// Close the socket
