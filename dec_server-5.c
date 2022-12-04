@@ -47,16 +47,6 @@ char* decrypt(char *key, char *text, int len) {
 	return plain;
 }
 
-//int main(int argc, char **argv) {
-//	char *plain = "HELLO";
-//	char *key = "XMCKL";
-//	char *cipher = encrypt(key, plain, 5);
-//	printf("%s\n", cipher);
-//	char *decrypted = decrypt(key, cipher, 5);
-//	printf("%s\n", decrypted);
-//	return 0;
-//}
-
 void setupAddressStruct(struct sockaddr_in *address, int portNumber) {
 
 	// Clear out the address struct
@@ -70,6 +60,7 @@ void setupAddressStruct(struct sockaddr_in *address, int portNumber) {
 	address->sin_addr.s_addr = INADDR_ANY;
 }
 
+// Read a message in chunks until it's all been received
 char* readMessage(int fd, int l) {
 	char *message = (char*) malloc(l + 1);
 	message[l] = '\0';
@@ -89,6 +80,7 @@ char* readMessage(int fd, int l) {
 	return message;
 }
 
+// Write a message in chunks until it's all sent
 void writeMessage(int fd, char *message, int l) {
 	int blockSize = 512;
 	int written = 0;
@@ -150,30 +142,28 @@ int main(int argc, char *argv[]) {
 				ntohs(clientAddress.sin_addr.s_addr),
 				ntohs(clientAddress.sin_port));
 
-		// Get the message from the client and display it
+		// Clear the buffer 
 		memset(buffer, '\0', 256);
-
-		// we want to know whether we are going to get an encryption or decryption request
-
+		
+		// Receive an initial connection to identify the decryption client
 		recv(connectionSocket, &req, sizeof(char), 0);
 		if (req == 'D') {
 			recv(connectionSocket, &req, sizeof(int), 0);
 			int l = req;
 			char *key = readMessage(connectionSocket, l);
-			char *text = readMessage(connectionSocket, l);
-			char *cipher = decrypt(text, key, l);
-			//printf("%s\n%s\n%s\n", key, text, cipher);
+			char *cipher = readMessage(connectionSocket, l);
+			char *decryptedText = decrypt(cipher, key, l);
 			// Send a Success message back to the client
-			writeMessage(connectionSocket, cipher, l);
+			writeMessage(connectionSocket, decryptedText, l);
 		} else {
-			fprintf(stderr, "This is the decryption server and we are unable to verify the client's identity\n. Bye!!\n");
+			fprintf(stderr, "Unable to verify the decryption client's identity\n. Connection refused!!\n");
 			exit(2);
 		}
+		// Close connection socket
 		close(connectionSocket);
 	}
 	// Close the listening socket
 	close(listenSocket);
 
-//	printf("%s\n", decrypt("ZSLAUXMJQPNSFEU OIUALTNVPNIS SXYZXOSJ RZODFTHOHLWQAWI", "RZP KAPIWCAJJDZKWML LLMGXQV FZPXQPBG", 36));
 	return 0;
 }
