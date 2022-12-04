@@ -137,6 +137,7 @@ int main(int argc, char *argv[]) {
 		}
 
 		// Clear the buffer
+		memset(buffer, '\0', 256);
 
 		// Receive an initial connection to identify the encryption client
 		recv(connectionSocket, &req, sizeof(char), 0);
@@ -156,7 +157,5 @@ int main(int argc, char *argv[]) {
 	}
 	// Close the listening socket
 	close(listenSocket);
-
-///	printf("%s\n", encrypt("PJVNKQTQUWEWYCGCGSRHNZGKGGGWFNRUMLWLRPA  EVMWQOBIEYVT", "THE RED GOOSE FLIES AT MIDNIGHT STOP", 36));
 	return 0;
 }
